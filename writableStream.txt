@@ -1,0 +1,143 @@
+Node.js Notes — createWriteStream & Backpressure
+1️⃣ What does fs.createWriteStream() do?
+
+fs.createWriteStream() is used to write data to a file using streams.
+It writes data chunk by chunk, instead of loading the whole file into memory.
+
+Syntax
+fs.createWriteStream(path, options)
+
+Arguments
+✅ path
+
+The file path where data will be written.
+
+If the file does not exist, Node.js creates it.
+
+If the file already exists, Node.js removes (truncates) the existing content and starts writing from the beginning (default behavior).
+
+2️⃣ options object in createWriteStream
+
+The second argument is an options object that controls how the writable stream behaves.
+
+Important option: highWaterMark
+{ highWaterMark: 4 }
+
+
+highWaterMark sets the internal buffer size
+
+It defines how many bytes the writable stream buffer can hold at a time
+
+When the buffer reaches this limit, the stream applies backpressure
+
+👉 Example:
+
+highWaterMark: 4
+
+
+Means the writable stream buffer can hold 4 bytes only.
+
+3️⃣ What is Backpressure?
+Definition
+
+Backpressure happens when:
+
+A readable stream is faster
+
+A writable stream is slower
+
+Data is produced faster than it can be written
+
+Default buffer sizes
+
+📥 Readable stream (file) → 64 KB
+
+📤 Writable stream (file) → 16 KB
+
+Because readable streams load large chunks and writable streams have limited capacity, data can overflow the writable buffer — this situation is called backpressure.
+
+4️⃣ How write() works in Writable Streams
+writeStream.write(chunk)
+
+
+Takes a Buffer or chunk
+
+Writes it into the writable stream buffer
+
+Returns a boolean value
+
+Return values
+Return	Meaning
+true	Buffer has space, keep writing
+false	Buffer is full → backpressure
+
+⚠️ false does NOT mean write failed
+It means:
+
+“Stop writing for now, wait until I’m ready”
+
+5️⃣ Handling Backpressure Manually
+
+To handle backpressure, we:
+
+Pause the readable stream when buffer is full
+
+Resume the readable stream when writable stream drains
+
+6️⃣ Code: Handling Backpressure Manually
+import fs from "fs";
+
+const readStream = fs.createReadStream("chars.txt");
+const writeStream = fs.createWriteStream("write.txt", { highWaterMark: 4 });
+
+console.log(writeStream.writableHighWaterMark); // 4
+
+readStream.on("data", (chunk) => {
+  console.log(chunk);
+
+  const ok = writeStream.write(chunk);
+
+  if (!ok) {
+    console.log(writeStream.bytesWritten);
+    readStream.pause(); // stop reading more data
+  }
+});
+
+writeStream.on("drain", () => {
+  readStream.resume(); // continue reading when buffer is free
+});
+
+7️⃣ Events Used in Backpressure Handling
+data
+
+Emitted when readable stream provides a chunk
+
+pause()
+
+Stops readable stream from emitting more data
+
+drain
+
+Emitted when writable stream buffer becomes empty enough
+
+Signals that writing can continue
+
+resume()
+
+Restarts the readable stream
+
+8️⃣ Important Points to Remember
+
+highWaterMark controls buffer size, not file size
+
+bytesWritten shows bytes flushed to disk, not buffered bytes
+
+Backpressure prevents memory overflow
+
+Manual handling gives low-level control
+
+readStream.pipe(writeStream) does all this automatically
+
+🧠 One-Line Summary
+
+createWriteStream writes data using buffers, and backpressure occurs when writable streams can’t keep up with readable streams — handled using write(), pause(), and drain().

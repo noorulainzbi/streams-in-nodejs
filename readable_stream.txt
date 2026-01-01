@@ -1,0 +1,117 @@
+Node.js Streams & File Handling — Notes (2026-01-01)
+1️⃣ fs.createReadStream Basics
+
+fs.createReadStream(path, options) creates a readable stream from a file.
+
+Options you can pass:
+
+Option	Type	Description
+flags	string	File system flags (r, r+, etc.)
+encoding	string	Convert buffer to string (utf-8, etc.)
+fd	number	Use an existing file descriptor instead of opening a file
+autoClose	boolean	Should Node close the file automatically after reading? Default true
+emitClose	boolean	Should "close" event fire when fd closes? Default true
+start	number	Byte offset to start reading (inclusive)
+end	number	Byte offset to stop reading (inclusive)
+highWaterMark	number	Max bytes in internal buffer per read chunk
+2️⃣ Important Options Explained
+2.1 start & end
+
+start → byte to start reading inclusive.
+
+end → byte to stop reading inclusive.
+
+Example:
+
+fs.createReadStream("file.txt", { start: 2, end: 5 });
+
+
+Reads bytes: 2, 3, 4, 5 (total 4 bytes).
+
+2.2 autoClose vs emitClose
+Option	Meaning	Practical tip
+autoClose	Should Node close the file descriptor automatically?	true in most cases
+emitClose	Should "close" event fire when fd closes?	Useful if you need notification
+
+Remember:
+
+autoClose = action
+
+emitClose = notification
+
+2.3 highWaterMark
+
+Maximum bytes read into internal buffer per chunk.
+
+Example: highWaterMark: 4 → Node tries to read 4 bytes per chunk.
+
+Actual chunk size may vary slightly due to OS.
+
+2.4 encoding
+
+Converts buffers to strings automatically.
+
+Example: encoding: 'utf-8'
+
+If not specified, data emitted is a Buffer.
+
+3️⃣ File Descriptors (fd)
+
+Definition:
+A file descriptor is a numeric ID that the OS assigns to an open file.
+
+Standard fd numbers:
+
+0 → stdin
+
+1 → stdout
+
+2 → stderr
+
+Example:
+
+const rs = fs.createReadStream("file.txt");
+rs.on("open", fd => console.log(fd));
+
+
+Streams use fd to read/write efficiently without using the path again.
+
+4️⃣ Stream Event Lifecycle
+
+ReadStream emits these events:
+
+Event	When it fires	Responsible
+open	File is opened → fd assigned	libuv + OS
+ready	Stream is prepared for reading	Node.js
+data	A chunk of data is read	Node.js + libuv + OS
+end	No more data to read	Node.js
+close	File descriptor closed	Node.js + libuv
+error	An error occurs (file missing, permission, etc.)	Node.js + OS
+
+Notes:
+
+"ready" ≠ data available
+
+"end" ≠ file closed
+
+"close" = file closed (may happen after "end" or after error)
+
+Normal Reading Flow
+createReadStream()
+   ↓
+open → fd assigned
+   ↓
+ready → buffers allocated
+   ↓
+data → chunks emitted (repeated)
+   ↓
+end → no more data
+   ↓
+close → fd closed
+
+Error Flow
+open
+ready
+data
+error
+close (if autoClose:true)
