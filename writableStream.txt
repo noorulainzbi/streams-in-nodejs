@@ -3,7 +3,17 @@ Node.js Notes — createWriteStream & Backpressure
 
 fs.createWriteStream() is used to write data to a file using streams.
 It writes data chunk by chunk, instead of loading the whole file into memory.
+Writable streams do NOT close automatically because Node.js cannot know when writing is done
+To close writableStream we use end() method:
 
+👉.end() tells the writable stream:
+no more data is coming
+flush remaining data
+close the file
+.end(data) writes final data and then closes
+.end() triggers:
+finish → data written
+close → resource released
 Syntax
 fs.createWriteStream(path, options)
 
