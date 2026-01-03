@@ -1,0 +1,21 @@
+/********************************** Why streams are so fast (REAL reasons) ***************************************/
+1️⃣ File open/close cost (BIGGEST reason)
+Using appendFileSync repeatedly is extremely slow because every loop iteration does:
+open file
+seek to end
+write data
+close file
+So for 100,000 numbers, that means 100,000 open + 100,000 close syscalls.
+System calls are expensive because every call requires switching from user space to kernel space.
+This repeated overhead is the main reason appendFileSync is so slow.
+✅ How WriteStream fixes this
+const stream = fs.createWriteStream("numbers.txt");
+A write stream:
+Opens the file once
+Writes many times using an internal buffer
+Closes the file once at the end
+This reduces thousands of expensive open/close operations to just one, and lets the OS batch disk writes efficiently.
+Streams also reduce repeated string-to-buffer conversions and avoid flooding the OS with tiny writes.
+// appendFileSync performs an open → write → close cycle for every call.
+When you do this thousands of times, you’re making thousands of expensive system calls.
+A write stream opens the file once, writes continuously using an internal buffer, and closes it once, dramatically reducing syscall overhead and disk I/O pressure.
