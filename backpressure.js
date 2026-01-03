@@ -21,3 +21,6 @@ readStream.on("data", (chunk) => {
 writeStream.on("drain", () => {
   readStream.resume();
 });
+
+// The above code handles backpressure manually but we have builtin functions/methods in nodejs to handle backpressure
+// visit pipe.js file to understand pipi() and pipeline()
