@@ -1,0 +1,93 @@
+Duplex, Transform & PassThrough Streams in Node.js
+
+These are advanced stream types in Node.js used when you need control over both reading and writing data. They are commonly used in networking, compression, encryption, and real-time data processing.
+
+1️⃣ Duplex Stream
+What it is
+
+A Duplex stream can read and write data independently.
+The readable side and writable side do not depend on each other.
+
+Key point
+
+Writing data does not automatically produce readable output
+
+Read and write are separate channels
+
+Analogy
+
+🗣️ Walkie-talkie — you can speak and listen at the same time, but speaking does not guarantee you’ll hear your own voice.
+
+Use cases
+
+Network sockets (net.Socket)
+
+TCP connections
+
+WebSockets
+
+IPC (process communication)
+
+Import
+import { Duplex } from "stream";
+
+2️⃣ Transform Stream (Subclass of Duplex)
+What it is
+
+A Transform stream is a special type of Duplex stream where:
+
+Data written to the stream is transformed and then read out
+
+Key point
+
+Read and write are linked
+
+Output is derived from input
+
+Transformation logic lives in the transform() method
+
+Analogy
+
+🌍 Translator — input comes in one language, output comes out in another.
+
+Use cases
+
+Compression / decompression
+
+Encryption / decryption
+
+Parsing or formatting data (CSV → JSON, lowercase → uppercase)
+
+Import
+import { Transform } from "stream";
+
+3️⃣ PassThrough Stream (Special Case of Transform)
+What it is
+
+A PassThrough stream is a Transform stream that does not modify data.
+It simply forwards chunks as-is.
+
+Key point
+
+Input === Output
+
+Still follows Transform stream rules
+
+Read/write are linked, unlike Duplex
+
+Analogy
+
+🧪 Glass tube — whatever enters comes out unchanged.
+
+Use cases
+
+Debugging stream pipelines
+
+Logging data flow
+
+Measuring data size
+
+Monitoring or branching streams
+
+Import
+import { PassThrough } from "stream";
