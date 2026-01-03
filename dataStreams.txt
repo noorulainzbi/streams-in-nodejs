@@ -1,0 +1,26 @@
+Every process in an operating system has three standard data streams:
+
+* **Standard Input (`stdin`)**
+* **Standard Output (`stdout`)**
+* **Standard Error (`stderr`)**
+
+All three are *duplex streams*, meaning they can support both reading and writing.
+However, in most practical scenarios:
+
+* `stdin` is used for reading input.
+* `stdout` and `stderr` are used for writing output and error messages, respectively.
+
+To fully utilize their duplex nature, we’d need to write custom code that handles both reading and writing.
+
+---
+
+## Practical Example
+
+Let’s take **bash** as an example:
+
+* When we type a command like `ls`, the **bash process** receives our input through its **readable** `stdin` stream.
+* The bash process then writes the command’s output to its **writable** `stdout` stream.
+* If we type an invalid command, bash writes the corresponding error message to the **`stderr`** stream.
+
+---
+
