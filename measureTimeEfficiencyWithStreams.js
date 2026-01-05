@@ -77,7 +77,8 @@ let data = "";
 for (let i = 1; i <= 100000; i++) {
   data = `${i} `;
   offset += buffer.write(data, offset);
-  if (offset + data.length >= buffer.byteLength) {
+  const dataSize = Buffer.byteLength(data);
+  if (offset + dataSize >= buffer.byteLength) {
     fs.writeSync(fd, buffer.subarray(0, offset));
     offset = 0;
   }
